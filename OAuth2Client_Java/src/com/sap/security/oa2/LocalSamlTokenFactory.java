@@ -69,8 +69,6 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
     public static final String CFG_SAML_ISSUER = "saml_issuer";
     public static final String CFG_SAML_AUTHNCONTEXT_PREVIUOUS_AUTHENTICATION = "saml_session_authentication";
     public static final String CFG_OA2_CLIENT_ID = "oa2_client_id";
-    // configuration data
-    Properties _cfg;
 
     // OpenSAML object creation
     static private XMLObjectBuilderFactory builderFactory;
@@ -93,19 +91,14 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
      * 
      * @param configurationProperties
      * @return
+     * @throws ConfigurationException
      */
-    public static SamlTokenFactory getInstance(Properties configurationProperties) {
-	try {
-	    getSAMLBuilder();
-	} catch (ConfigurationException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	}
+    public static SamlTokenFactory getInstance(Properties configurationProperties) throws ConfigurationException {
+	getSAMLBuilder();
 	return new LocalSamlTokenFactory(configurationProperties);
     }
 
     private LocalSamlTokenFactory(Properties configurationProperties) {
-	this._cfg = configurationProperties;
     }
 
     /**
@@ -119,16 +112,16 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
      * @throws UnrecoverableKeyException
      * @throws MissingPropertyException
      */
-    private Credential getSigningCredential() throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, MissingPropertyException {
+    private Credential getSigningCredential(Properties _cfg) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, MissingPropertyException {
 	if (this._signingCredential == null) { // check configuration
-	    checkPropertySet(CFG_KEYSTORE_PATH);
-	    checkPropertySet(CFG_KEYSTORE_PASSWORD);
-	    checkPropertySet(CFG_KEYSTORE_ALIAS);
+	    checkPropertySet(_cfg,CFG_KEYSTORE_PATH);
+	    checkPropertySet(_cfg,CFG_KEYSTORE_PASSWORD);
+	    checkPropertySet(_cfg,CFG_KEYSTORE_ALIAS);
 	    // load keystore
-	    KeyStore ks = KeyStore.getInstance(getCfg(CFG_KEYSTORE_TYPE, "JKS"));
-	    ks.load(getClass().getResourceAsStream(getCfg(CFG_KEYSTORE_PATH)), getCfg(CFG_KEYSTORE_PASSWORD).toCharArray());
+	    KeyStore ks = KeyStore.getInstance(getCfg(_cfg, CFG_KEYSTORE_TYPE, "JKS"));
+	    ks.load(getClass().getResourceAsStream(getCfg(_cfg,CFG_KEYSTORE_PATH)), getCfg(_cfg,CFG_KEYSTORE_PASSWORD).toCharArray());
 	    // load key data
-	    PrivateKey pk = (PrivateKey) ks.getKey(getCfg(CFG_KEYSTORE_ALIAS), getCfg(CFG_KEYSTORE_PASSWORD).toCharArray());
+	    PrivateKey pk = (PrivateKey) ks.getKey(getCfg(_cfg,CFG_KEYSTORE_ALIAS), getCfg(_cfg,CFG_KEYSTORE_PASSWORD).toCharArray());
 	    X509Certificate pubKey = (X509Certificate) ks.getCertificate("sts");
 	    OAuthTracer.trace(OAuthTracer.TEXT_TYPE, "Signing key", pubKey.getSubjectDN().getName());
 	    // create credential object
@@ -145,7 +138,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
      * @param defaultValue
      * @return
      */
-    private String getCfg(String propertyName, String defaultValue) {
+    private String getCfg(Properties _cfg, String propertyName, String defaultValue) {
 	return _cfg.getProperty(propertyName, defaultValue);
     }
 
@@ -155,7 +148,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
      * @param propertyName
      * @return
      */
-    private String getCfg(String propertyName) {
+    private String getCfg(Properties _cfg, String propertyName) {
 	return _cfg.getProperty(propertyName);
     }
 
@@ -165,8 +158,8 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
      * @param propertyName
      * @throws MissingPropertyException
      */
-    private void checkPropertySet(String propertyName) throws MissingPropertyException {
-	if (getCfg(propertyName) == null)
+    private void checkPropertySet(Properties _cfg,String propertyName) throws MissingPropertyException {
+	if (getCfg(_cfg,propertyName) == null)
 	    throw new MissingPropertyException(propertyName);
     }
 
@@ -226,18 +219,18 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
      * @throws MissingPropertyException
      * @throws ConfigurationException
      */
-    private Assertion createAssertion() throws MissingPropertyException, ConfigurationException {
-	checkPropertySet(CFG_SAML_NAMEID);
-	checkPropertySet(CFG_OA2_TOKEN_ENDPOINT);
-	checkPropertySet(CFG_SAML_AUDIENCE_RESTRICTION);
-	checkPropertySet(CFG_SAML_ISSUER);
-	checkPropertySet(CFG_OA2_CLIENT_ID);
+    private Assertion createAssertion(Properties _cfg) throws MissingPropertyException, ConfigurationException {
+	checkPropertySet(_cfg,CFG_SAML_NAMEID);
+	checkPropertySet(_cfg,CFG_OA2_TOKEN_ENDPOINT);
+	checkPropertySet(_cfg,CFG_SAML_AUDIENCE_RESTRICTION);
+	checkPropertySet(_cfg,CFG_SAML_ISSUER);
+	checkPropertySet(_cfg,CFG_OA2_CLIENT_ID);
 
 	// Create the NameIdentifier
 
 	NameID nameId = (NameID) nameIdBuilder.buildObject();
-	nameId.setValue(getCfg(CFG_SAML_NAMEID));
-	nameId.setFormat(getCfg(CFG_SAML_NAMEID_FORMAT, "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"));
+	nameId.setValue(getCfg(_cfg,CFG_SAML_NAMEID));
+	nameId.setFormat(getCfg(_cfg,CFG_SAML_NAMEID_FORMAT, "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"));
 
 	// Create the SubjectConfirmation
 
@@ -248,7 +241,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 
 	// confirmationMethod.setNotBefore(now);
 	confirmationMethod.setNotOnOrAfter(until);
-	confirmationMethod.setRecipient(getCfg(CFG_OA2_TOKEN_ENDPOINT));
+	confirmationMethod.setRecipient(getCfg(_cfg,CFG_OA2_TOKEN_ENDPOINT));
 	SubjectConfirmation subjectConfirmation = (SubjectConfirmation) subjectConfirmationBuilder.buildObject();
 
 	subjectConfirmation.setMethod(SubjectConfirmation.METHOD_BEARER);
@@ -265,21 +258,12 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 	// Builder Attributes
 	AttributeStatement attrStatement = (AttributeStatement) attrStatementBuilder.buildObject();
 
-	// Create the attribute statement
-	/*
-	 * Map<String, String> attributes = input.getAttributes(); if
-	 * (attributes != null) { Set<String> keySet = attributes.keySet(); for
-	 * (String key : keySet) { Attribute attrFirstName =
-	 * buildStringAttribute(key, attributes.get(key), getSAMLBuilder());
-	 * attrStatement.getAttributes().add(attrFirstName); } }
-	 */
-
 	// Create the audience restriction
 	AudienceRestriction audienceRestriction = (AudienceRestriction) audienceRestrictionnBuilder.buildObject();
 
 	// Create the audience
 	Audience audience = (Audience) audienceBuilder.buildObject();
-	audience.setAudienceURI(getCfg(CFG_SAML_AUDIENCE_RESTRICTION));
+	audience.setAudienceURI(getCfg(_cfg,CFG_SAML_AUDIENCE_RESTRICTION));
 	// add in the audience
 	audienceRestriction.getAudiences().add(audience);
 
@@ -304,14 +288,14 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 	AuthnContext authnContext = (AuthnContext) authContextBuilder.buildObject();
 
 	AuthnContextClassRef authnContextClassRef = (AuthnContextClassRef) authContextClassRefBuilder.buildObject();
-	authnContextClassRef.setAuthnContextClassRef(getCfg(CFG_SAML_AUTHNCONTEXT_PREVIUOUS_AUTHENTICATION, "urn:oasis:names:tc:SAML:2.0:ac:classes:Password"));
+	authnContextClassRef.setAuthnContextClassRef(getCfg(_cfg,CFG_SAML_AUTHNCONTEXT_PREVIUOUS_AUTHENTICATION, "urn:oasis:names:tc:SAML:2.0:ac:classes:Password"));
 
 	authnContext.setAuthnContextClassRef(authnContextClassRef);
 	authnStatement.setAuthnContext(authnContext);
 
 	// Create Issuer
 	Issuer issuer = (Issuer) issuerBuilder.buildObject();
-	issuer.setValue(getCfg(CFG_SAML_ISSUER));
+	issuer.setValue(getCfg(_cfg,CFG_SAML_ISSUER));
 
 	// Create the attribute
 	AttributeStatementBuilder attributeStatementBuilder = (AttributeStatementBuilder) builderFactory.getBuilder(AttributeStatement.DEFAULT_ELEMENT_NAME);
@@ -323,7 +307,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 
 	XSAnyBuilder sb2 = (XSAnyBuilder) builderFactory.getBuilder(XSAny.TYPE_NAME);
 	XSAny attrAny = sb2.buildObject(AttributeValue.DEFAULT_ELEMENT_NAME, XSAny.TYPE_NAME);
-	attrAny.setTextContent(getCfg(CFG_OA2_CLIENT_ID));
+	attrAny.setTextContent(getCfg(_cfg,CFG_OA2_CLIENT_ID));
 
 	attr.getAttributeValues().add(attrAny);
 	attributeStatement.getAttributes().add(attr);
@@ -349,14 +333,14 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
      * @see com.sap.security.oa2.SamlTokenFactory#getSamlAssertion()
      */
     @Override
-    public String getSamlAssertion() throws SAMLException {
+    public String getSamlAssertion(Properties _cfg) throws SAMLException {
 	try {
-	    Assertion assertion = createAssertion();
+	    Assertion assertion = createAssertion(_cfg);
 	    AssertionMarshaller marshaller = new AssertionMarshaller();
 	    Element plaintextElement = marshaller.marshall(assertion);
 	    String originalAssertionString = XMLHelper.nodeToString(plaintextElement);
 
-	    Credential signingCredential = getSigningCredential();
+	    Credential signingCredential = getSigningCredential(_cfg);
 
 	    Signature signature = (Signature) getSAMLBuilder().getBuilder(Signature.DEFAULT_ELEMENT_NAME).buildObject(Signature.DEFAULT_ELEMENT_NAME);
 

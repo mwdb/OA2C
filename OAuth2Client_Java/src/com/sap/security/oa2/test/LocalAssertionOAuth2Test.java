@@ -1,6 +1,8 @@
 package com.sap.security.oa2.test;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
@@ -17,6 +19,7 @@ import javax.net.ssl.X509TrustManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.opensaml.xml.ConfigurationException;
 
 import com.sap.security.oa2.LocalSamlTokenFactory;
 import com.sap.security.oa2.OAuth2SAML2AccessToken;
@@ -24,13 +27,13 @@ import com.sap.security.oa2.TrustData;
 import com.sap.security.oa2.trace.OAuthTraceData;
 import com.sap.security.oa2.trace.OAuthTracer;
 
-public class LocalTokenFactoryTest {
+public class LocalAssertionOAuth2Test {
 
     LocalSamlTokenFactory f;
     Properties configurationProperties;
 
     @Before
-    public void setUp() throws IOException, NoSuchAlgorithmException, KeyManagementException {
+    public void setUp() throws IOException, NoSuchAlgorithmException, KeyManagementException, ConfigurationException {
 	configurationProperties = new Properties();
 	configurationProperties.load(getClass().getResourceAsStream("saml.properties"));
 	f = (LocalSamlTokenFactory) LocalSamlTokenFactory.getInstance(configurationProperties);
@@ -62,16 +65,23 @@ public class LocalTokenFactoryTest {
 
     @Test
     public void dumpSAML2Metadata() throws Exception {
+	File f = new File("metadata.xml");
+	FileOutputStream fos = new FileOutputStream(f);
 	System.out.println("SAML2 Metadata");
-	new TrustData(configurationProperties).createMetadata(System.out);
-	System.out.println();
+	new TrustData(configurationProperties).createMetadata(fos);
+	fos.close();
+	String path = f.getAbsolutePath();
+	System.out.println("Metadata written to "+path);
     }
 
     @Test
     public void testGetAT2() throws Exception {
 	try {
-	    OAuth2SAML2AccessToken atf = new OAuth2SAML2AccessToken(f, configurationProperties);
-	    String at = atf.getAccessToken("OAUTH2_TEST_SCOPE1 ZRMTSAMPLEFLIGHT_2_0001");
+	    OAuth2SAML2AccessToken atf = new OAuth2SAML2AccessToken(f);
+	    //set name to be added in Subject field
+	    configurationProperties.remove("saml_nameid");
+	    configurationProperties.setProperty("saml_nameid", "D039113");
+	    String at = atf.getAccessToken(configurationProperties, "EPM_LANES_DEMO_SRV_0001");
 	    System.out.println(at);
 	    Assert.assertTrue(at != null);
 	} catch (Exception ex) {

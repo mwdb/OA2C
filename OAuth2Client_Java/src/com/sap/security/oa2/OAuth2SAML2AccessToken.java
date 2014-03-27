@@ -7,15 +7,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.Properties;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import com.sap.security.oa2.trace.OAuthTracer;
 
@@ -27,37 +19,10 @@ public class OAuth2SAML2AccessToken {
 
     public static boolean sslIgnoreSet = false;
     SamlTokenFactory stf;
-    Properties _cfg;
 
-    public OAuth2SAML2AccessToken(SamlTokenFactory stf, Properties configurationProperties) {
-	this._cfg = configurationProperties;
+    public OAuth2SAML2AccessToken(SamlTokenFactory stf) {
 	this.stf = stf;
     }
-
-    public void setIgnoreSSLErrors() throws NoSuchAlgorithmException, KeyManagementException {
-	if (sslIgnoreSet)
-	    return;
-	TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-
-	    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-
-		return null;
-	    }
-
-	    public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-	    }
-
-	    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-	    }
-
-	} };
-	SSLContext sc = SSLContext.getInstance("SSL");
-
-	sc.init(null, trustAllCerts, new java.security.SecureRandom());
-
-	HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-	sslIgnoreSet = true;
-    };
 
     /**
      * Read value from configuration
@@ -66,7 +31,7 @@ public class OAuth2SAML2AccessToken {
      * @param defaultValue
      * @return
      */
-    private String getCfg(String propertyName, String defaultValue) {
+    private String getCfg(Properties _cfg, String propertyName, String defaultValue) {
 	return _cfg.getProperty(propertyName, defaultValue);
     }
 
@@ -76,7 +41,7 @@ public class OAuth2SAML2AccessToken {
      * @param propertyName
      * @return
      */
-    private String getCfg(String propertyName) {
+    private String getCfg(Properties _cfg, String propertyName) {
 	return _cfg.getProperty(propertyName);
     }
 
@@ -86,21 +51,21 @@ public class OAuth2SAML2AccessToken {
      * @param propertyName
      * @throws MissingPropertyException
      */
-    private void checkPropertySet(String propertyName) throws MissingPropertyException {
-	if (getCfg(propertyName) == null)
+    private void checkPropertySet(Properties _cfg, String propertyName) throws MissingPropertyException {
+	if (getCfg(_cfg, propertyName) == null)
 	    throw new MissingPropertyException(propertyName);
     }
 
-    public String getAccessToken(String scope) throws AccessTokenException {
+    public String getAccessToken(Properties _cfg, String scope) throws AccessTokenException {
 	try {
-	    checkPropertySet(CFG_SAML_RECIPIENT);
-	    checkPropertySet(CFG_OAUTH_CLIENT_USERNAME);
-	    checkPropertySet(CFG_OAUTH_CLIENT_PASSWORD);
+	    checkPropertySet(_cfg, CFG_SAML_RECIPIENT);
+	    checkPropertySet(_cfg, CFG_OAUTH_CLIENT_USERNAME);
+	    checkPropertySet(_cfg, CFG_OAUTH_CLIENT_PASSWORD);
 
-	    String assertionString = stf.getSamlAssertion();
-	    String recipient = getCfg(CFG_SAML_RECIPIENT);
-	    String oa2Username = getCfg(CFG_OAUTH_CLIENT_USERNAME);
-	    String oa2Password = getCfg(CFG_OAUTH_CLIENT_PASSWORD);
+	    String assertionString = stf.getSamlAssertion(_cfg);
+	    String recipient = getCfg(_cfg, CFG_SAML_RECIPIENT);
+	    String oa2Username = getCfg(_cfg, CFG_OAUTH_CLIENT_USERNAME);
+	    String oa2Password = getCfg(_cfg, CFG_OAUTH_CLIENT_PASSWORD);
 
 	    String b64Data = URLEncoder.encode(org.opensaml.xml.util.Base64.encodeBytes(assertionString.getBytes()), "UTF-8");
 	    HttpURLConnection con = (HttpURLConnection) new URL(recipient).openConnection();
