@@ -29,41 +29,23 @@ import com.sap.security.oa2.trace.OAuthTracer;
 
 public class LocalAssertionOAuth2Test {
 
-    LocalSamlTokenFactory f;
+    LocalSamlTokenFactory localSAMLTokenFactory;
     Properties configurationProperties;
 
     @Before
     public void setUp() throws IOException, NoSuchAlgorithmException, KeyManagementException, ConfigurationException {
 	configurationProperties = new Properties();
 	configurationProperties.load(getClass().getResourceAsStream("saml.properties"));
-	f = (LocalSamlTokenFactory) LocalSamlTokenFactory.getInstance(configurationProperties);
+	localSAMLTokenFactory = (LocalSamlTokenFactory) LocalSamlTokenFactory.getInstance(configurationProperties);
 	// Install the all-trusting trust manager
 	setIgnoreSSLErrors();
     }
 
-    public void setIgnoreSSLErrors() throws NoSuchAlgorithmException, KeyManagementException {
-	TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-
-	    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-
-		return null;
-	    }
-
-	    public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-	    }
-
-	    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-	    }
-
-	} };
-	SSLContext sc = SSLContext.getInstance("SSL");
-
-	sc.init(null, trustAllCerts, new java.security.SecureRandom());
-
-	HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-    };
-
     @Test
+    /**
+     * Generate SAML Metadata based on the saml.properties file
+     * @throws Exception
+     */
     public void dumpSAML2Metadata() throws Exception {
 	File f = new File("metadata.xml");
 	FileOutputStream fos = new FileOutputStream(f);
@@ -71,16 +53,22 @@ public class LocalAssertionOAuth2Test {
 	new TrustData(configurationProperties).createMetadata(fos);
 	fos.close();
 	String path = f.getAbsolutePath();
-	System.out.println("Metadata written to "+path);
+	System.out.println("Metadata written to " + path);
     }
 
     @Test
+    /**
+     * Obtain an access token from a Gateway system
+     * @throws Exception
+     */
     public void testGetAT2() throws Exception {
 	try {
-	    OAuth2SAML2AccessToken atf = new OAuth2SAML2AccessToken(f);
-	    //set name to be added in Subject field
+	    OAuth2SAML2AccessToken atf = new OAuth2SAML2AccessToken(localSAMLTokenFactory);
+	    // set name to be added in Subject field
 	    configurationProperties.remove("saml_nameid");
 	    configurationProperties.setProperty("saml_nameid", "D039113");
+	    //obtain access token for scope EPM_LANES_DEMO_SRV_0001.
+	    //multiple scopes are separated by space, e.g. "EPM_LANES_DEMO_SRV_0001 EPM_SCOPE2"
 	    String at = atf.getAccessToken(configurationProperties, "EPM_LANES_DEMO_SRV_0001");
 	    System.out.println(at);
 	    Assert.assertTrue(at != null);
@@ -133,4 +121,27 @@ public class LocalAssertionOAuth2Test {
 	byte[] inData = bos.toByteArray();
 	return inData;
     }
+
+    public void setIgnoreSSLErrors() throws NoSuchAlgorithmException, KeyManagementException {
+	TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+
+	    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+
+		return null;
+	    }
+
+	    public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+	    }
+
+	    public void checkServerTrusted(X509Certificate[] certs, String authType) {
+	    }
+
+	} };
+	SSLContext sc = SSLContext.getInstance("SSL");
+
+	sc.init(null, trustAllCerts, new java.security.SecureRandom());
+
+	HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+    };
+
 }
