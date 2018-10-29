@@ -1,25 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/bcprov-jdk15-1.46.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/commons-codec-1.7.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/commons-collections-3.2.1.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/commons-httpclient-3.1.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/commons-lang-2.6.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/esapi-2.0.1.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/jcl-over-slf4j-1.7.5.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/joda-time-2.2.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/jul-to-slf4j-1.7.5.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/log4j-over-slf4j-1.7.5.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/not-yet-commons-ssl-0.3.9.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/opensaml-2.6.1.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/openws-1.5.1.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/slf4j-api-1.7.5.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/velocity-1.7.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/xmlsec-1.5.6.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/lib/xmltooling-1.4.1.jar"/>
-	<classpathentry kind="lib" path="C:/dev/neo/opensaml-2.6.1/opensaml-2.6.1.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" output="target/classes" path="src/main/java">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="**" kind="src" output="target/classes" path="src/main/resources">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="**" kind="src" output="target/test-classes" path="src/test/resources">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="owner.project.facets" value="java"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>
