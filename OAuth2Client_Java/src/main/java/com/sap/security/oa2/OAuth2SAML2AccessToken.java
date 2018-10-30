@@ -13,48 +13,48 @@ import com.sap.security.oa2.trace.OAuthTracer;
 
 public class OAuth2SAML2AccessToken {
 
-    public static final String CFG_SAML_RECIPIENT = "oa2_token_endpoint";
-    private static final String CFG_OAUTH_CLIENT_USERNAME = "oa2_client_id";
-    private static final String CFG_OAUTH_CLIENT_PASSWORD = "oa2_client_secret";
+	public static final String CFG_SAML_RECIPIENT = "oa2_token_endpoint";
+	private static final String CFG_OAUTH_CLIENT_USERNAME = "oa2_client_id";
+	private static final String CFG_OAUTH_CLIENT_PASSWORD = "oa2_client_secret";
 
-    public static boolean sslIgnoreSet = false;
-    SamlTokenFactory stf;
+	public static boolean sslIgnoreSet = false;
+	SamlTokenFactory stf;
 
-    public OAuth2SAML2AccessToken(SamlTokenFactory stf) {
-	this.stf = stf;
-    }
+	public OAuth2SAML2AccessToken(SamlTokenFactory stf) {
+		this.stf = stf;
+	}
 
-    /**
-     * Read value from configuration
-     * 
-     * @param propertyName
-     * @param defaultValue
-     * @return
-     */
-    private String getCfg(Properties _cfg, String propertyName, String defaultValue) {
-	return _cfg.getProperty(propertyName, defaultValue);
-    }
+	/**
+	 * Read value from configuration
+	 *
+	 * @param propertyName
+	 * @param defaultValue
+	 * @return
+	 */
+	private String getCfg(Properties _cfg, String propertyName, String defaultValue) {
+		return _cfg.getProperty(propertyName, defaultValue);
+	}
 
-    /**
-     * Read value from configuration
-     * 
-     * @param propertyName
-     * @return
-     */
-    private String getCfg(Properties _cfg, String propertyName) {
-	return _cfg.getProperty(propertyName);
-    }
+	/**
+	 * Read value from configuration
+	 *
+	 * @param propertyName
+	 * @return
+	 */
+	private String getCfg(Properties _cfg, String propertyName) {
+		return _cfg.getProperty(propertyName);
+	}
 
-    /**
-     * Check if a required property exists. Throws exception otherwise
-     * 
-     * @param propertyName
-     * @throws MissingPropertyException
-     */
-    private void checkPropertySet(Properties _cfg, String propertyName) throws MissingPropertyException {
-	if (getCfg(_cfg, propertyName) == null)
-	    throw new MissingPropertyException(propertyName);
-    }
+	/**
+	 * Check if a required property exists. Throws exception otherwise
+	 *
+	 * @param propertyName
+	 * @throws MissingPropertyException
+	 */
+	private void checkPropertySet(Properties _cfg, String propertyName) throws MissingPropertyException {
+		if (getCfg(_cfg, propertyName) == null)
+			throw new MissingPropertyException(propertyName);
+	}
 
 	public String getAccessToken(Properties _cfg, String scope) throws AccessTokenException {
 		try {
@@ -70,8 +70,9 @@ public class OAuth2SAML2AccessToken {
 			String b64Data = URLEncoder.encode(org.opensaml.xml.util.Base64.encodeBytes(assertionString.getBytes()),
 					"UTF-8");
 			HttpURLConnection con = (HttpURLConnection) new URL(recipient).openConnection();
-			String data = "client_id=" + oa2Username + "&scope=" + scope
-					+ "&grant_type=urn:ietf:params:oauth:grant-type:saml2-bearer&assertion=" + b64Data;
+			String data = String.format(
+					"client_id=%s&scope=%s&grant_type=urn:ietf:params:oauth:grant-type:saml2-bearer&assertion=%s",
+					oa2Username, scope, b64Data);
 			con.addRequestProperty("Authorization",
 					"Basic " + org.opensaml.xml.util.Base64.encodeBytes((oa2Username + ":" + oa2Password).getBytes()));
 			con.setDoOutput(true);
@@ -81,6 +82,7 @@ public class OAuth2SAML2AccessToken {
 			OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
 			wr.write(data);
 			wr.flush();
+			wr.close();
 
 			int respCode = con.getResponseCode();
 			if (respCode != 200) {
@@ -96,19 +98,18 @@ public class OAuth2SAML2AccessToken {
 				OAuthTracer.trace(OAuthTracer.TEXT_TYPE, "OAuth", new String(res));
 				return new String(res);
 			}
-
-		} catch (Exception ex) {
+		} catch (IOException | MissingPropertyException | SAMLException ex) {
 			throw new AccessTokenException(ex);
 		}
 	}
 
-    private byte[] readData(InputStream is) throws IOException {
-	ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	int dataElement;
-	while ((dataElement = is.read()) != -1) {
-	    bos.write(dataElement);
+	private byte[] readData(InputStream is) throws IOException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		int dataElement;
+		while ((dataElement = is.read()) != -1) {
+			bos.write(dataElement);
+		}
+		byte[] inData = bos.toByteArray();
+		return inData;
 	}
-	byte[] inData = bos.toByteArray();
-	return inData;
-    }
 }
