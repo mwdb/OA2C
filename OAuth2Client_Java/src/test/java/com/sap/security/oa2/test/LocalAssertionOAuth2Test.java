@@ -62,11 +62,11 @@ public class LocalAssertionOAuth2Test {
 	public void dumpSAML2Metadata() throws Exception {
 		File f = new File("metadata.xml");
 		try (FileOutputStream fos = new FileOutputStream(f)) {
-			LOG.info("SAML2 Metadata: ");
+			LOG.info("SAML2 Metadata:");
 			new TrustData(configurationProperties).createMetadata(fos);
 
 			String path = f.getAbsolutePath();
-			LOG.info("Metadata written to: ", path);
+			LOG.info("Metadata written to: {}", path);
 		}
 	}
 
@@ -78,20 +78,19 @@ public class LocalAssertionOAuth2Test {
 	 */
 	public void testGetAT2() {
 		OAuth2SAML2AccessToken atf = new OAuth2SAML2AccessToken(localSAMLTokenFactory);
-		LOG.info("Using the user name: ", configurationProperties.getProperty("saml_nameid"));
-		LOG.info("Using the scope: ", configurationProperties.getProperty("scope"));
+		LOG.info("Using the user name: {}", configurationProperties.getProperty("saml_nameid"));
+		LOG.info("Using the scope: {}", configurationProperties.getProperty("scope"));
 		try {
 			// configurationProperties.remove("saml_nameid");
-			// configurationProperties.setProperty("saml_nameid", "D039113");
-			// obtain access token for scope EPM_LANES_DEMO_SRV_0001.
-			// multiple scopes are separated by space, e.g. "EPM_LANES_DEMO_SRV_0001
-			// EPM_SCOPE2"
+			// configurationProperties.setProperty("saml_nameid", "SAP_USER");
+			// obtain access token for scope EPM_LANES_DEMO_SRV_0001
+			// multiple scopes are separated by space, e.g. "EPM_LANES_DEMO_SRV_0001 EPM_SCOPE2"
 			String at = atf.getAccessToken(configurationProperties, configurationProperties.getProperty("scope"));
-			LOG.info("Access token: ", at);
+			LOG.info("Access token: {}", at);
 
 			Assert.assertTrue(at != null);
 		} catch (AccessTokenException ex) {
-			LOG.error("No access token received: ", ex);
+			LOG.error("No access token received:", ex);
 			Assert.assertFalse("No access token received", true);
 		} finally {
 			dumpTraces();
