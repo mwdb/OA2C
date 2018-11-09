@@ -9,6 +9,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Properties;
 
+import org.opensaml.xml.util.Base64;
+
 import com.sap.security.oa2.trace.OAuthTracer;
 
 public class OAuth2SAML2AccessToken {
@@ -67,14 +69,14 @@ public class OAuth2SAML2AccessToken {
 			String oa2Username = getCfg(_cfg, CFG_OAUTH_CLIENT_USERNAME);
 			String oa2Password = getCfg(_cfg, CFG_OAUTH_CLIENT_PASSWORD);
 
-			String b64Data = URLEncoder.encode(org.opensaml.xml.util.Base64.encodeBytes(assertionString.getBytes()),
+			String b64Data = URLEncoder.encode(Base64.encodeBytes(assertionString.getBytes()),
 					"UTF-8");
 			HttpURLConnection con = (HttpURLConnection) new URL(recipient).openConnection();
 			String data = String.format(
 					"client_id=%s&scope=%s&grant_type=urn:ietf:params:oauth:grant-type:saml2-bearer&assertion=%s",
 					oa2Username, scope, b64Data);
 			con.addRequestProperty("Authorization",
-					"Basic " + org.opensaml.xml.util.Base64.encodeBytes((oa2Username + ":" + oa2Password).getBytes()));
+					"Basic " + Base64.encodeBytes((oa2Username + ":" + oa2Password).getBytes()));
 			con.setDoOutput(true);
 			con.setDoInput(true);
 			con.setRequestProperty("Cookie", "");
@@ -87,14 +89,14 @@ public class OAuth2SAML2AccessToken {
 			int respCode = con.getResponseCode();
 			if (respCode != 200) {
 				byte[] res = readData(con.getErrorStream());
-				OAuthTracer.trace(OAuthTracer.HTTP_TYPE, "POST" + "( " + respCode + " )  to " + recipient,
-						"REQ:\nPOST data:" + data + "\n\nRESP:\n" + new String(res) + "\n\nURL:\n" + recipient);
+				OAuthTracer.trace(OAuthTracer.HTTP_TYPE, "POST (" + respCode + ") to " + recipient,
+						"\nREQ:\nPOST data: " + data + "\n\nRESP:\n" + new String(res) + "\n\nURL:\n" + recipient);
 				OAuthTracer.trace(OAuthTracer.TEXT_TYPE, "OAuth", new String(res));
 				throw new AccessTokenException(new String(res));
 			} else {
 				byte[] res = readData(con.getInputStream());
-				OAuthTracer.trace(OAuthTracer.HTTP_TYPE, "POST" + "( " + respCode + " )  to " + recipient,
-						"REQ:\nPOST data:" + data + "\n\nRESP:\n" + new String(res) + "\n\nURL:\n" + recipient);
+				OAuthTracer.trace(OAuthTracer.HTTP_TYPE, "POST (" + respCode + ") to " + recipient,
+						"\nREQ:\nPOST data: " + data + "\n\nRESP:\n" + new String(res) + "\n\nURL:\n" + recipient);
 				OAuthTracer.trace(OAuthTracer.TEXT_TYPE, "OAuth", new String(res));
 				return new String(res);
 			}

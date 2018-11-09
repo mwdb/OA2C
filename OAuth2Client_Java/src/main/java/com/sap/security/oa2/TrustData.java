@@ -40,18 +40,18 @@ public class TrustData {
 
 	private static void createMetadata(String samlIssuer, X509Certificate[] certs, OutputStream os) {
 		try {
-			String mdTemplate = "<?xml version='1.0' encoding='UTF-8'?>\r\n" +
-					"<m:EntityDescriptor entityID='{0}' xmlns:m='urn:oasis:names:tc:SAML:2.0:metadata'>\r\n" +
-					"	<m:RoleDescriptor xsi:type='fed:SecurityTokenServiceType' xmlns:fed='http://docs.oasis-open.org/wsfed/federation/200706' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' protocolSupportEnumeration='http://docs.oasis-open.org/ws-sx/ws-trust/200512 http://schemas.xmlsoap.org/ws/2005/02/trust http://docs.oasis-open.org/wsfed/federation/200706'>\r\n" +
-					"		<m:KeyDescriptor use='signing'>\r\n" +
-					"			<ds:KeyInfo xmlns:ds='http://www.w3.org/2000/09/xmldsig#'>\r\n" +
+			String mdTemplate = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+					"<m:EntityDescriptor entityID=\"{0}\" xmlns:m=\"urn:oasis:names:tc:SAML:2.0:metadata\">\r\n" +
+					"	<m:RoleDescriptor xsi:type=\"fed:SecurityTokenServiceType\" xmlns:fed=\"http://docs.oasis-open.org/wsfed/federation/200706\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" protocolSupportEnumeration=\"http://docs.oasis-open.org/ws-sx/ws-trust/200512 http://schemas.xmlsoap.org/ws/2005/02/trust http://docs.oasis-open.org/wsfed/federation/200706\">\r\n" +
+					"		<m:KeyDescriptor use=\"signing\">\r\n" +
+					"			<ds:KeyInfo xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">\r\n" +
 					"				<ds:X509Data>\r\n" +
 					"					<ds:X509Certificate>{1}</ds:X509Certificate>\r\n" +
 					"				</ds:X509Data>\r\n" +
 					"			</ds:KeyInfo>\r\n" +
 					"		</m:KeyDescriptor>\r\n" +
 					"		<fed:TokenTypesOffered>\r\n" +
-					"			<fed:TokenType Uri='urn:oasis:names:tc:SAML:1.0:assertion'/>\r\n" +
+					"			<fed:TokenType Uri=\"urn:oasis:names:tc:SAML:1.0:assertion\"/>\r\n" +
 					"		</fed:TokenTypesOffered>\r\n" +
 					"	</m:RoleDescriptor>\r\n" +
 					"</m:EntityDescriptor>";
