@@ -16,6 +16,7 @@ import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLObjectBuilder;
 import org.opensaml.common.SAMLVersion;
+import org.opensaml.saml1.core.ConfirmationMethod;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.Attribute;
 import org.opensaml.saml2.core.AttributeStatement;
@@ -46,10 +47,8 @@ import org.opensaml.xml.signature.KeyInfo;
 import org.opensaml.xml.signature.Signature;
 import org.opensaml.xml.signature.SignatureConstants;
 import org.opensaml.xml.signature.Signer;
-import org.opensaml.xml.signature.X509Data;
 import org.opensaml.xml.signature.impl.KeyInfoBuilder;
 import org.opensaml.xml.signature.impl.X509CertificateBuilder;
-import org.opensaml.xml.signature.impl.X509DataBuilder;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.XMLHelper;
 import org.w3c.dom.Element;
@@ -73,22 +72,21 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
     // OpenSAML object creation
     static private XMLObjectBuilderFactory builderFactory;
     private Credential _signingCredential;
-    static private SAMLObjectBuilder nameIdBuilder = null;
-    static private SAMLObjectBuilder confirmationMethodBuilder = null;
-    static private SAMLObjectBuilder subjectConfirmationBuilder = null;
-    static private SAMLObjectBuilder subjectBuilder = null;
-    static private SAMLObjectBuilder attrStatementBuilder = null;
-    static private SAMLObjectBuilder audienceRestrictionnBuilder = null;
-    static private SAMLObjectBuilder audienceBuilder = null;
-    static private SAMLObjectBuilder authStatementBuilder = null;
-    static private SAMLObjectBuilder authContextBuilder = null;
-    static private SAMLObjectBuilder authContextClassRefBuilder = null;
-    static private SAMLObjectBuilder issuerBuilder = null;
-    static private SAMLObjectBuilder assertionBuilder = null;
+    static private SAMLObjectBuilder<NameID> nameIdBuilder = null;
+    static private SAMLObjectBuilder<ConfirmationMethod> confirmationMethodBuilder = null;
+    static private SAMLObjectBuilder<SubjectConfirmation> subjectConfirmationBuilder = null;
+    static private SAMLObjectBuilder<Subject> subjectBuilder = null;
+    static private SAMLObjectBuilder<AudienceRestriction> audienceRestrictionnBuilder = null;
+    static private SAMLObjectBuilder<Audience> audienceBuilder = null;
+    static private SAMLObjectBuilder<AuthnStatement> authStatementBuilder = null;
+    static private SAMLObjectBuilder<AuthnContext> authnContextBuilder = null;
+    static private SAMLObjectBuilder<AuthnContextClassRef> authnContextClassRefBuilder = null;
+    static private SAMLObjectBuilder<Issuer> issuerBuilder = null;
+    static private SAMLObjectBuilder<Assertion> assertionBuilder = null;
 
     /**
      * Create instance object
-     * 
+     *
      * @param configurationProperties
      * @return
      * @throws ConfigurationException
@@ -103,7 +101,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 
     /**
      * Read signing key
-     * 
+     *
      * @return
      * @throws IOException
      * @throws KeyStoreException
@@ -125,7 +123,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 			// load key data
 			PrivateKey pk = (PrivateKey) ks.getKey(getCfg(_cfg, CFG_KEYSTORE_ALIAS),
 					getCfg(_cfg, CFG_KEYSTORE_PASSWORD).toCharArray());
-			X509Certificate pubKey = (X509Certificate) ks.getCertificate("sts");
+			X509Certificate pubKey = (X509Certificate) ks.getCertificate(getCfg(_cfg, CFG_KEYSTORE_ALIAS));
 			OAuthTracer.trace(OAuthTracer.TEXT_TYPE, "Signing key", pubKey.getSubjectDN().getName());
 			// create credential object
 			Credential cred = SecurityHelper.getSimpleCredential(pubKey.getPublicKey(), pk);
@@ -136,7 +134,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 
     /**
      * Read value from configuration
-     * 
+     *
      * @param propertyName
      * @param defaultValue
      * @return
@@ -147,7 +145,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 
     /**
      * Read value from configuration
-     * 
+     *
      * @param propertyName
      * @return
      */
@@ -157,7 +155,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 
     /**
      * Check if a required property exists. Throws exception otherwise
-     * 
+     *
      * @param propertyName
      * @throws MissingPropertyException
      */
@@ -168,7 +166,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 
     /**
      * Builds a SAML Attribute of type String
-     * 
+     *
      * @param name
      * @param value
      * @param builderFactory
@@ -190,24 +188,21 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
     }
 
     private static XMLObjectBuilderFactory getSAMLBuilder() throws ConfigurationException {
-
 	if (builderFactory == null) {
 	    // OpenSAML 2.3
 	    DefaultBootstrap.bootstrap();
 	    builderFactory = Configuration.getBuilderFactory();
-	    nameIdBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(NameID.DEFAULT_ELEMENT_NAME);
-	    confirmationMethodBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(SubjectConfirmationData.DEFAULT_ELEMENT_NAME);
-	    subjectConfirmationBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(SubjectConfirmation.DEFAULT_ELEMENT_NAME);
-	    subjectBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(Subject.DEFAULT_ELEMENT_NAME);
-	    attrStatementBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(AttributeStatement.DEFAULT_ELEMENT_NAME);
-	    audienceRestrictionnBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(AudienceRestriction.DEFAULT_ELEMENT_NAME);
-	    audienceBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(Audience.DEFAULT_ELEMENT_NAME);
-	    authStatementBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(AuthnStatement.DEFAULT_ELEMENT_NAME);
-	    authContextBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(AuthnContext.DEFAULT_ELEMENT_NAME);
-	    authContextClassRefBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(AuthnContextClassRef.DEFAULT_ELEMENT_NAME);
-	    issuerBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(Issuer.DEFAULT_ELEMENT_NAME);
-	    assertionBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(Assertion.DEFAULT_ELEMENT_NAME);
-
+	    nameIdBuilder = (SAMLObjectBuilder<NameID>) getSAMLBuilder().getBuilder(NameID.DEFAULT_ELEMENT_NAME);
+	    confirmationMethodBuilder = (SAMLObjectBuilder<ConfirmationMethod>) getSAMLBuilder().getBuilder(SubjectConfirmationData.DEFAULT_ELEMENT_NAME);
+	    subjectConfirmationBuilder =(SAMLObjectBuilder<SubjectConfirmation>) getSAMLBuilder().getBuilder(SubjectConfirmation.DEFAULT_ELEMENT_NAME);
+	    subjectBuilder =(SAMLObjectBuilder<Subject>) getSAMLBuilder().getBuilder(Subject.DEFAULT_ELEMENT_NAME);
+	    audienceRestrictionnBuilder =  (SAMLObjectBuilder<AudienceRestriction>) getSAMLBuilder().getBuilder(AudienceRestriction.DEFAULT_ELEMENT_NAME);
+	    audienceBuilder =  (SAMLObjectBuilder<Audience>) getSAMLBuilder().getBuilder(Audience.DEFAULT_ELEMENT_NAME);
+	    authStatementBuilder =  (SAMLObjectBuilder<AuthnStatement>) getSAMLBuilder().getBuilder(AuthnStatement.DEFAULT_ELEMENT_NAME);
+	    authnContextBuilder =  (SAMLObjectBuilder<AuthnContext>) getSAMLBuilder().getBuilder(AuthnContext.DEFAULT_ELEMENT_NAME);
+	    authnContextClassRefBuilder =(SAMLObjectBuilder<AuthnContextClassRef>) getSAMLBuilder().getBuilder(AuthnContextClassRef.DEFAULT_ELEMENT_NAME);
+	    issuerBuilder = (SAMLObjectBuilder<Issuer>) getSAMLBuilder().getBuilder(Issuer.DEFAULT_ELEMENT_NAME);
+	    assertionBuilder =  (SAMLObjectBuilder<Assertion>) getSAMLBuilder().getBuilder(Assertion.DEFAULT_ELEMENT_NAME);
 	}
 
 	return builderFactory;
@@ -216,7 +211,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
     /**
      * Helper method which includes some basic SAML fields which are part of
      * almost every SAML Assertion.
-     * 
+     *
      * @param input
      * @return
      * @throws MissingPropertyException
@@ -231,7 +226,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 
 	// Create the NameIdentifier
 
-	NameID nameId = (NameID) nameIdBuilder.buildObject();
+	NameID nameId = nameIdBuilder.buildObject();
 	nameId.setValue(getCfg(_cfg,CFG_SAML_NAMEID));
 	nameId.setFormat(getCfg(_cfg,CFG_SAML_NAMEID_FORMAT, "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"));
 
@@ -245,7 +240,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 	// confirmationMethod.setNotBefore(now);
 	confirmationMethod.setNotOnOrAfter(until);
 	confirmationMethod.setRecipient(getCfg(_cfg,CFG_OA2_TOKEN_ENDPOINT));
-	SubjectConfirmation subjectConfirmation = (SubjectConfirmation) subjectConfirmationBuilder.buildObject();
+	SubjectConfirmation subjectConfirmation = subjectConfirmationBuilder.buildObject();
 
 	subjectConfirmation.setMethod(SubjectConfirmation.METHOD_BEARER);
 	subjectConfirmation.setSubjectConfirmationData(confirmationMethod);
@@ -253,51 +248,48 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 	// should be Bearer
 
 	// Create the Subject
-	Subject subject = (Subject) subjectBuilder.buildObject();
+	Subject subject = subjectBuilder.buildObject();
 
 	subject.setNameID(nameId);
 	subject.getSubjectConfirmations().add(subjectConfirmation);
 
-	// Builder Attributes
-	AttributeStatement attrStatement = (AttributeStatement) attrStatementBuilder.buildObject();
-
 	// Create the audience restriction
-	AudienceRestriction audienceRestriction = (AudienceRestriction) audienceRestrictionnBuilder.buildObject();
+	AudienceRestriction audienceRestriction = audienceRestrictionnBuilder.buildObject();
 
 	// Create the audience
-	Audience audience = (Audience) audienceBuilder.buildObject();
+	Audience audience = audienceBuilder.buildObject();
 	audience.setAudienceURI(getCfg(_cfg,CFG_SAML_AUDIENCE_RESTRICTION));
 	// add in the audience
 	audienceRestriction.getAudiences().add(audience);
 
-	SAMLObjectBuilder conditionsBuilder = (SAMLObjectBuilder) getSAMLBuilder().getBuilder(Conditions.DEFAULT_ELEMENT_NAME);
-	Conditions conditions = (Conditions) conditionsBuilder.buildObject();
+	SAMLObjectBuilder<Conditions> conditionsBuilder = (SAMLObjectBuilder<Conditions>) getSAMLBuilder().getBuilder(Conditions.DEFAULT_ELEMENT_NAME);
+	Conditions conditions = conditionsBuilder.buildObject();
 
-	// conditions.getConditions().add(condition);
-	conditions.getAudienceRestrictions().add(audienceRestriction);
-	conditions.setNotBefore(now);
-	conditions.setNotOnOrAfter(until);
+    //conditions.getConditions().add(condition);
+    conditions.getAudienceRestrictions().add(audienceRestriction);
+	//conditions.setNotBefore(now);
+	//conditions.setNotOnOrAfter(until);
 
 	// Authnstatement
 
-	AuthnStatement authnStatement = (AuthnStatement) authStatementBuilder.buildObject();
+	AuthnStatement authnStatement = authStatementBuilder.buildObject();
 	// authnStatement.setSubject(subject);
 	// authnStatement.setAuthenticationMethod(strAuthMethod);
 	DateTime now2 = new DateTime();
 	authnStatement.setAuthnInstant(now2);
 	// authnStatement.setSessionIndex(input.getSessionId());
-	authnStatement.setSessionNotOnOrAfter(now2.plus(15));
+	// authnStatement.setSessionNotOnOrAfter(now2.plus(15));
 
-	AuthnContext authnContext = (AuthnContext) authContextBuilder.buildObject();
+	AuthnContext authnContext = authnContextBuilder.buildObject();
 
-	AuthnContextClassRef authnContextClassRef = (AuthnContextClassRef) authContextClassRefBuilder.buildObject();
+	AuthnContextClassRef authnContextClassRef = authnContextClassRefBuilder.buildObject();
 	authnContextClassRef.setAuthnContextClassRef(getCfg(_cfg,CFG_SAML_AUTHNCONTEXT_PREVIUOUS_AUTHENTICATION, "urn:oasis:names:tc:SAML:2.0:ac:classes:Password"));
 
 	authnContext.setAuthnContextClassRef(authnContextClassRef);
 	authnStatement.setAuthnContext(authnContext);
 
 	// Create Issuer
-	Issuer issuer = (Issuer) issuerBuilder.buildObject();
+	Issuer issuer = issuerBuilder.buildObject();
 	issuer.setValue(getCfg(_cfg,CFG_SAML_ISSUER));
 
 	// Create the attribute
@@ -316,7 +308,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 	attributeStatement.getAttributes().add(attr);
 
 	// Create the assertion
-	Assertion assertion = (Assertion) assertionBuilder.buildObject();
+	Assertion assertion = assertionBuilder.buildObject();
 	assertion.setID("_" + UUID.randomUUID().toString());
 	assertion.setSubject(subject);
 	assertion.setIssuer(issuer);
@@ -332,7 +324,7 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sap.security.oa2.SamlTokenFactory#getSamlAssertion()
      */
     @Override
@@ -354,16 +346,17 @@ public class LocalSamlTokenFactory implements SamlTokenFactory {
 	    KeyInfoBuilder keyInfoBuilder = (KeyInfoBuilder) getSAMLBuilder().getBuilder(KeyInfo.DEFAULT_ELEMENT_NAME);
 	    KeyInfo keyInfo = keyInfoBuilder.buildObject();
 
-	    X509DataBuilder x509databuilder = (X509DataBuilder) getSAMLBuilder().getBuilder(X509Data.DEFAULT_ELEMENT_NAME);
+	    //X509DataBuilder x509databuilder = (X509DataBuilder) getSAMLBuilder().getBuilder(X509Data.DEFAULT_ELEMENT_NAME);
 
-	    X509Data x509Data = x509databuilder.buildObject();
+	    //X509Data x509Data = x509databuilder.buildObject();
 	    X509CertificateBuilder x509CertificateBuilder = (X509CertificateBuilder) getSAMLBuilder().getBuilder(org.opensaml.xml.signature.X509Certificate.DEFAULT_ELEMENT_NAME);
 
 	    org.opensaml.xml.signature.X509Certificate certXMLAssertion = x509CertificateBuilder.buildObject();
 
 	    certXMLAssertion.setValue(Base64.encodeBytes(signingCredential.getPublicKey().getEncoded()));
-	    x509Data.getX509Certificates().add(certXMLAssertion);
-	    keyInfo.getX509Datas().add(x509Data);
+	    //x509Data.getX509Certificates().add(certXMLAssertion);
+	    //x509Data.getX509Certificates().add(e)
+	    //keyInfo.getX509Datas().add(x509Data);
 	    signature.setKeyInfo(keyInfo);
 
 	    assertion.setSignature(signature);
