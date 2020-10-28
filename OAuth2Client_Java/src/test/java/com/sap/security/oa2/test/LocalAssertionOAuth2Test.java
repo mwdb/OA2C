@@ -66,7 +66,7 @@ public class LocalAssertionOAuth2Test {
 			new TrustData(configurationProperties).createMetadata(fos);
 
 			String path = f.getAbsolutePath();
-			LOG.info("Metadata written to: ", path);
+			LOG.info("Metadata written to: {}", path);
 		}
 	}
 
@@ -78,8 +78,8 @@ public class LocalAssertionOAuth2Test {
 	 */
 	public void testGetAT2() {
 		OAuth2SAML2AccessToken atf = new OAuth2SAML2AccessToken(localSAMLTokenFactory);
-		LOG.info("Using the user name: ", configurationProperties.getProperty("saml_nameid"));
-		LOG.info("Using the scope: ", configurationProperties.getProperty("scope"));
+		LOG.info("Using the user name: {}", configurationProperties.getProperty("saml_nameid"));
+		LOG.info("Using the scope: {}", configurationProperties.getProperty("scope"));
 		try {
 			// configurationProperties.remove("saml_nameid");
 			// configurationProperties.setProperty("saml_nameid", "D039113");
@@ -87,7 +87,7 @@ public class LocalAssertionOAuth2Test {
 			// multiple scopes are separated by space, e.g. "EPM_LANES_DEMO_SRV_0001
 			// EPM_SCOPE2"
 			String at = atf.getAccessToken(configurationProperties, configurationProperties.getProperty("scope"));
-			LOG.info("Access token: ", at);
+			LOG.info("Access token: {}", at);
 
 			Assert.assertTrue(at != null);
 		} catch (AccessTokenException ex) {
